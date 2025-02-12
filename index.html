@@ -43,6 +43,14 @@
         align-items: center;
         justify-content: center;
       }
+			.area {
+				width: 100%;
+        height: auto;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: left;
+			}
 
       .task-area {
         width: 100%;
@@ -82,7 +90,7 @@
       .finish-day-button {
         width: 60%;
         height: 80px;
-        margin-left: calc(20% - 6px);
+        margin-left: calc(10% - 6px);
         margin-bottom: 5%;
         cursor: pointer;
         position: relative;
@@ -93,6 +101,20 @@
         align-items: center;
         justify-content: center;
       }
+			.minus-point-button {
+        width: 15%;
+        height: 80px;
+        margin-left: calc(5% - 12px);
+        margin-bottom: 5%;
+        cursor: pointer;
+        position: relative;
+        background-color: rgb(200, 50, 50);
+        border-radius: 8px;
+        border: 6px solid rgb(100, 20, 20);
+				display: flex;
+        align-items: center;
+        justify-content: center;
+			}
     </style>
   </head>
 
@@ -107,10 +129,18 @@
         <span class="span points-text" style="margin-left: 5%">10</span>
       </div>
     </div>
+		
+		<div class = "area">
+			<div class="finish-day-button">
+				<span class="span">Finish Day</span>
+			</div>
+			
+			<div class="minus-point-button">
+				<span class="span">-1</span>
+			</div>
+		</div>
 
-    <div class="finish-day-button">
-      <span class="span">Finish Day</span>
-    </div>
+    
 
     <script>
       let pointsElement = document.querySelector(".points")
@@ -203,7 +233,7 @@
           points = parseInt(localStorage.getItem("points"))
           totalPointsText.textContent = points
         } else {
-          totalPointsText.textContent = "Failed to load points! :("
+          totalPointsText.textContent = "No points yet :("
         }
 				
 				let data = null
@@ -286,8 +316,14 @@
         location.reload()
       }
 
-      let finishDayButton = document.querySelector(".finish-day-button")
+      let finishDayButton = document.querySelector(".finish-day-button");
       finishDayButton.addEventListener("click", finishDay)
+			
+			let minusOneButton = document.querySelector(".minus-point-button");
+			minusOneButton.addEventListener("click", () => {
+				addPoints(-1);
+				saveData();
+			})
 
       loadData()
     </script>
