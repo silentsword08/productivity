@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page Title</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: rgb(50, 50, 50);
+      }
+
+      .span {
+        color: #ffffff;
+        font-size: 40px;
+        text-align: center;
+        user-select: none;
+      }
+      .span.dark {
+        color: rgb(200, 200, 200);
+      }
+
+      .points {
+        width: 80%;
+        height: 200px;
+        left: calc(10% - 6px);
+        margin-top: 50px;
+        position: relative;
+        background-color: rgb(100, 200, 100);
+        border-radius: 10px;
+        border: 6px solid rgb(80, 180, 80);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .task-area {
+        width: 100%;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: left;
+        margin-top: 50px;
+      }
+
+      .task {
+        width: 80%;
+        height: 80px;
+        margin-bottom: 5%;
+        cursor: pointer;
+        position: relative;
+        background-color: rgb(200, 200, 200);
+        border-radius: 8px;
+        border: 6px solid rgb(180, 180, 180);
+        display: flex;
+        align-items: center;
+        justify-content: left;
+      }
+
+      .task.completed {
+        background-color: rgb(120, 120, 120);
+        border: 6px solid rgb(100, 100, 100);
+        height: 60px;
+      }
+
+      .points-text {
+        font-size: 30px;
+        margin-left: auto;
+      }
+			
+			.finish-day-button {
+				width: 60%;
+        height: 80px;
+				margin-left: calc(20% - 6px);
+        margin-bottom: 5%;
+        cursor: pointer;
+        position: relative;
+        background-color: rgb(200, 50, 50);
+        border-radius: 8px;
+        border: 6px solid rgb(100, 20, 20);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+			}
+    </style>
+  </head>
+
+  <body>
+    <div class="points">
+      <span class="span" style="font-size: 80px">Loading points</span>
+    </div>
+
+    <div class="task-area">
+      <div class="task task-template">
+        <span class="span task-text" style="margin-left: 5%">Task</span>
+        <span class="span points-text" style="margin-left: 5%">10</span>
+      </div>
+    </div>
+		
+		<div class = "finish-day-button">
+			<span class="span">Finish Day</span>
+		</div>
+
+    <script>
+      let pointsElement = document.querySelector(".points")
+      let totalPointsText = pointsElement.querySelector("span")
+      let taskArea = document.querySelector(".task-area")
+      let points = 0
+
+      let taskTemplate = document.querySelector(".task-template")
+      taskTemplate.remove()
+			
+			function addPoints(num) {
+				points += num;
+				totalPointsText.textContent = points;
+			}
+
+      function createTask(name, completed, points) {
+        let newTask = taskTemplate.cloneNode(true)
+        let nameText = newTask.querySelector(".task-text")
+        let pointsText = newTask.querySelector(".points-text")
+        nameText.textContent = name
+
+        if (completed) {
+          newTask.classList.add("completed")
+          nameText.classList.add("dark")
+          pointsText.classList.add("dark")
+        }
+				
+				newTask.querySelector(".points-text").textContent = points;
+
+        taskArea.appendChild(newTask)
+
+        newTask.addEventListener("click", () => {
+          if (newTask.classList.contains("completed")) {
+            newTask.classList.remove("completed")
+            nameText.classList.remove("dark")
+            pointsText.classList.remove("dark")
+						
+						addPoints(0 - parseInt(pointsText.textContent));
+						
+          } else {
+            newTask.classList.add("completed")
+            nameText.classList.add("dark")
+            pointsText.classList.add("dark")
+						
+						addPoints(parseInt(pointsText.textContent));
+          }
+
+          sortTasks()
+          saveData()
+        })
+      }
+
+      function sortTasks() {
+				console.log("sorting");
+				
+        let tasks = Array.from(taskArea.children)
+        tasks.sort((a, b) => {
+					let sortScoreA = 0
+					let sortScoreB = 0
+					
+          if (a.classList.contains("completed")) {
+						sortScoreA -= 100
+					}
+					
+					sortScoreA += parseInt(a.querySelector(".points-text").textContent)
+					
+					if (b.classList.contains("completed")) {
+						sortScoreB -= 100
+					}
+					
+					sortScoreB += parseInt(b.querySelector(".points-text").textContent)
+					
+					if (sortScoreA > sortScoreB) {
+						console.log(sortScoreA + " > " + sortScoreB)
+						return -1;
+					} else if (sortScoreA < sortScoreB) {
+					console.log(sortScoreA + " < " + sortScoreB)
+						return 1;
+					} else {
+						return 0;
+					}
+        })
+
+        tasks.forEach((task) => {
+          taskArea.appendChild(task);
+        })
+      }
+
+      function loadData() {
+        if (localStorage.getItem("points")) {
+          points = parseInt(localStorage.getItem("points"))
+          totalPointsText.textContent = points;
+        } else {
+          totalPointsText.textContent = "Failed to load points! :(";
+        }
+
+        if (localStorage.getItem("taskData")) {
+          let data = localStorage.getItem("taskData").split("\\\\");
+          for (let task of data) {
+            let completed = task.slice(0, 1);
+
+            if (completed == "C") {
+              completed = true;
+            } else {
+              completed = false;
+            }
+						
+						let points = parseInt(task.slice(1, 4));
+
+            console.log(completed);
+            let name = task.slice(3);
+            createTask(name, completed, points);
+          }
+        }
+				
+        sortTasks()
+      }
+
+      function saveData() {
+        localStorage.setItem("points", points)
+
+        let dataText = ""
+        let tasks = Array.from(taskArea.children)
+
+        tasks.forEach((task) => {
+          if (task.classList.contains("completed")) {
+            dataText += "C"
+          } else {
+            dataText += "X"
+          }
+					
+					dataText += task.querySelector(".points-text").textContent;
+
+          dataText += task.querySelector(".task-text").textContent;
+					console.log(tasks.indexOf(task))
+
+          if (tasks.indexOf(task) != tasks.length - 1) {
+            dataText += "\\\\"
+          }
+        })
+
+        console.log(dataText)
+        localStorage.setItem("taskData", dataText)
+      }
+			
+			function finishDay() {
+				let hasOneUncompletedTask = false
+				let tasks = Array.from(taskArea.children)
+
+        tasks.forEach((task) => {
+					let nameText = task.querySelector(".task-text")
+        	let pointsText = task.querySelector(".points-text")
+					
+					if (task.classList.contains("completed")) {
+						task.classList.remove("completed")
+						nameText.classList.remove("dark")
+          	pointsText.classList.remove("dark")
+					} else {
+						hasOneUncompletedTask = true
+					}
+				})
+				
+				if (!hasOneUncompletedTask) {
+					addPoints(20);
+				}
+				
+				sortTasks()
+				saveData()
+				location.reload()
+			}
+			
+			let finishDayButton = document.querySelector(".finish-day-button");
+			finishDayButton.addEventListener("click", finishDay)
+
+      loadData()
+    </script>
+  </body>
+</html>
